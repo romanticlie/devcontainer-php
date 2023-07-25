@@ -1,0 +1,10 @@
+# Environments
+.env
+
+# OS General
+Thumbs.db
+.DS_Store
+
+# Develop tools
+.idea/
+*.swp
