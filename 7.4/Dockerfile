@@ -1,9 +1,12 @@
-FROM php:7.4-fpm-buster
+FROM php:7.4.33-fpm-bullseye
 
 
 ARG TZ=Asia/Shanghai
-ARG PHP_VERSION=php:7.4-fpm-buster
-ARG PHP_EXTENSIONS=pdo_mysql,zip,pcntl,mysqli,mbstring,bcmath,sockets,gettext,shmop,sysvmsg,sysvsem,sysvshm,gd,intl,soap,xsl,xmlrpc,curl,gmp,imap,ldap,mcrypt,opcache,redis,xdebug,swoole,mongodb,apcu
+ARG PHP_VERSION=php:7.4.33-fpm-bullseye
+ARG PHP_EXTENSIONS=pdo_mysql,zip,pcntl,mysqli,mbstring,bcmath,sockets,gettext,shmop,sysvmsg,sysvsem,sysvshm,gd,intl,soap,xsl,curl,gmp,ldap,mcrypt,opcache,redis,xdebug,swoole,mongodb,apcu
+
+# Replace Mirror Source
+RUN sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list && apt update
 
 COPY ./extensions /tmp/extensions
 WORKDIR /tmp/extensions

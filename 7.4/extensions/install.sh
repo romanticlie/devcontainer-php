@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 export MC="-j$(nproc)"
 
@@ -41,9 +42,9 @@ isPhpVersionGreaterOrEqual()
     local PHP_MINOR_VERSION=$(php -r "echo PHP_MINOR_VERSION;")
 
     if [[ "$PHP_MAJOR_VERSION" -gt "$1" || "$PHP_MAJOR_VERSION" -eq "$1" && "$PHP_MINOR_VERSION" -ge "$2" ]]; then
-        return 1;
+        echo 1;
     else
-        return 0;
+        echo 0;
     fi
 }
 
@@ -152,8 +153,7 @@ fi
 
 
 if [[ -z "${EXTENSIONS##*,gd,*}" ]]; then
-    isPhpVersionGreaterOrEqual 7 4
-    if [[ "$?" = "1" ]]; then
+    if [[ $(isPhpVersionGreaterOrEqual 7 4) = "1" ]]; then
         options="--with-freetype --with-jpeg --with-webp"
     else
         options="--with-gd --with-freetype-dir=/usr/include/ --with-png-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-webp-dir=/usr/include/"
@@ -196,12 +196,6 @@ if [[ -z "${EXTENSIONS##*,xsl,*}" ]]; then
 	docker-php-ext-install ${MC} xsl
 fi
 
-if [[ -z "${EXTENSIONS##*,xmlrpc,*}" ]]; then
-    echo "---------- Install xmlrpc ----------"
-	apt install -y libxml2-dev libxslt1-dev
-	docker-php-ext-install ${MC} xmlrpc
-fi
-
 if [[ -z "${EXTENSIONS##*,curl,*}" ]]; then
     echo "---------- curl is installed ----------"
 fi
@@ -212,13 +206,6 @@ if [[ -z "${EXTENSIONS##*,gmp,*}" ]]; then
 	docker-php-ext-install ${MC} gmp
 fi
 
-if [[ -z "${EXTENSIONS##*,imap,*}" ]]; then
-    echo "---------- Install imap ----------"
-	apt install -y libkf5imap-dev
-    docker-php-ext-configure imap --with-imap --with-imap-ssl
-	docker-php-ext-install ${MC} imap
-fi
-
 if [[ -z "${EXTENSIONS##*,ldap,*}" ]]; then
     echo "---------- Install ldap ----------"
 	apt install -y libldb-dev
@@ -227,8 +214,7 @@ if [[ -z "${EXTENSIONS##*,ldap,*}" ]]; then
 fi
 
 if [[ -z "${EXTENSIONS##*,mcrypt,*}" ]]; then
-    isPhpVersionGreaterOrEqual 7 0
-    if [[ "$?" = "1" ]]; then
+    if [[ $(isPhpVersionGreaterOrEqual 7 0) = "1" ]]; then
         echo "---------- Install mcrypt ----------"
         apt install -y libmcrypt-dev libmcrypt4 re2c
         printf "\n" |pecl install mcrypt
@@ -242,9 +228,7 @@ fi
 
 
 if [[ -z "${EXTENSIONS##*,mysql,*}" ]]; then
-    isPhpVersionGreaterOrEqual 7 0
-
-    if [[ "$?" = "1" ]]; then
+    if [[ $(isPhpVersionGreaterOrEqual 7 0) = "1" ]]; then
         echo "---------- mysql was REMOVED from PHP 7.0.0 ----------"
     else
         echo "---------- Install mysql ----------"
@@ -265,25 +249,14 @@ fi
 
 if [[ -z "${EXTENSIONS##*,xdebug,*}" ]]; then
     echo "---------- Install xdebug ----------"
-    isPhpVersionGreaterOrEqual 7 0
-
-    if [[ "$?" = "1" ]]; then
-        isPhpVersionGreaterOrEqual 7 4
-        if [[ "$?" = "1" ]]; then
-            installExtensionFromTgz xdebug-2.9.2
-        else
-            installExtensionFromTgz xdebug-2.6.1
-        fi
-    else
-        installExtensionFromTgz xdebug-2.5.5
+    if [[ $(isPhpVersionGreaterOrEqual 7 4) = "1" ]]; then
+        installExtensionFromTgz xdebug-2.9.2
     fi
 fi
 
 if [[ -z "${EXTENSIONS##*,swoole,*}" ]]; then
     echo "---------- Install swoole ----------"
-    isPhpVersionGreaterOrEqual 7 0
-
-    if [[ "$?" = "1" ]]; then
+    if [[ $(isPhpVersionGreaterOrEqual 7 0) = "1" ]]; then
         installExtensionFromTgz swoole-4.8.11 --enable-openssl
     else
         installExtensionFromTgz swoole-2.0.11
@@ -295,7 +268,6 @@ if [[ -z "${EXTENSIONS##*,mongodb,*}" ]]; then
     echo "---------- Install mongodb ----------"
     apt install -y openssl libssl-dev
     installExtensionFromTgz mongodb-1.7.4
-    docker-php-ext-configure mongodb --with-mongodb-ssl=openssl 
 fi
 
 
@@ -303,10 +275,8 @@ fi
 
 if [[ -z "${EXTENSIONS##*,zip,*}" ]]; then
     echo "---------- Install zip ----------"
-    apt install -y zlib1g-dev
-
-    isPhpVersionGreaterOrEqual 7 4
-    if [[ "$?" != "1" ]]; then
+    apt install -y libzip-dev libzip4
+    if [[ $(isPhpVersionGreaterOrEqual 7 4) != "1" ]]; then
         docker-php-ext-configure zip --with-libzip=/usr/include
     fi
 
@@ -317,3 +287,5 @@ fi
 if [ "${PHP_EXTENSIONS}" != "" ]; then
     docker-php-source delete
 fi
+
+echo "all extension install success"
