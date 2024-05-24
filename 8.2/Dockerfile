@@ -39,3 +39,8 @@ COPY ./php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
 
 WORKDIR /www
+
+# docker login harbor-st.2345.cn                              登陆harbor
+# docker buildx create --name multi-platform-builder --use    创建docker driver并使用
+# docker buildx inspect --bootstrap                           拉取镜像moby/buildkit:buildx-stable-1
+# docker buildx build --platform linux/arm64,linux/amd64 -f Dockerfile -t harbor-st.2345.cn/server/devcontainer-php:8.2.12 . --push
